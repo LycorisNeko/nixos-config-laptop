@@ -9,7 +9,7 @@
     ./locale.nix
     ./network.nix
     ./nix.nix
-    ./amdgpu.nix
+    ./nvidia.nix
     ./packages.nix
     ./services.nix
     ./users.nix

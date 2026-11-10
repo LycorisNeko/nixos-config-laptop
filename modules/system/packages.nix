@@ -20,7 +20,7 @@
     python3
     ffmpeg
     pciutils
-    rocmPackages.rocm-smi
+    nvtopPackages.nvidia # GPU 实时资源监控（支持 Intel 核显与 NVIDIA 独显）
 
     docker-compose
 

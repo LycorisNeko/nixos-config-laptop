@@ -3,7 +3,7 @@
   programs.btop = {
     enable = true;
     package = pkgs.btop.override {
-      rocmSupport = true; # AMD Radeon PRO W6800
+      cudaSupport = true; # NVIDIA GeForce RTX 3070 Laptop
     };
     settings = {
       vim_keys = true;

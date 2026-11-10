@@ -19,7 +19,8 @@
     zathura
 
     # Apps consolidated from single-file modules
-    (blender.override { rocmSupport = true; })
+    (blender.override { cudaSupport = true; })
+    polychromatic # 雷蛇设备 RGB 灯效与性能图形化控制工具 (OpenRazer GUI)
     hmcl
     obsidian
     netease-cloud-music-gtk

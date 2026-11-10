@@ -12,17 +12,26 @@
         sort-key windows
       '';
     };
-    # 自动从 Windows EFI 分区 (nvme0n1p1, UUID: 5A4E-34EF) 复制启动文件至 /boot
+    # 自动探测并复制 Windows 启动文件至 /boot
     extraInstallCommands = ''
       ${pkgs.coreutils}/bin/mkdir -p /boot/EFI
-      WIN_ESP_MNT=$(${pkgs.coreutils}/bin/mktemp -d)
-      if ${pkgs.util-linux}/bin/mount -t vfat -o ro /dev/disk/by-uuid/5A4E-34EF "$WIN_ESP_MNT" 2>/dev/null; then
-        if [ -d "$WIN_ESP_MNT/EFI/Microsoft" ]; then
-          ${pkgs.coreutils}/bin/cp -ru "$WIN_ESP_MNT/EFI/Microsoft" /boot/EFI/
-        fi
-        ${pkgs.util-linux}/bin/umount "$WIN_ESP_MNT" 2>/dev/null || true
+      if [ ! -d /boot/EFI/Microsoft ]; then
+        for dev in /dev/nvme*p* /dev/sd* /dev/disk/by-uuid/*; do
+          if [ -b "$dev" ]; then
+            WIN_ESP_MNT=$(${pkgs.coreutils}/bin/mktemp -d)
+            if ${pkgs.util-linux}/bin/mount -t vfat -o ro "$dev" "$WIN_ESP_MNT" 2>/dev/null; then
+              if [ -d "$WIN_ESP_MNT/EFI/Microsoft" ]; then
+                ${pkgs.coreutils}/bin/cp -ru "$WIN_ESP_MNT/EFI/Microsoft" /boot/EFI/
+                ${pkgs.util-linux}/bin/umount "$WIN_ESP_MNT" 2>/dev/null || true
+                ${pkgs.coreutils}/bin/rm -rf "$WIN_ESP_MNT" 2>/dev/null || true
+                break
+              fi
+              ${pkgs.util-linux}/bin/umount "$WIN_ESP_MNT" 2>/dev/null || true
+            fi
+            ${pkgs.coreutils}/bin/rm -rf "$WIN_ESP_MNT" 2>/dev/null || true
+          fi
+        done
       fi
-      ${pkgs.coreutils}/bin/rm -rf "$WIN_ESP_MNT" 2>/dev/null || true
 
       # 禁用 systemd-boot 自动探测重复生成的 "Windows Boot Manager"，统一使用上述定义的 "Windows 11"
       if [ -f /boot/loader/loader.conf ]; then
@@ -50,8 +59,8 @@
   # 静默开机配置：隐藏终端日志输出与 initrd 冗余信息
   boot.consoleLogLevel = 0;
 
-  # Early KMS: 在 initrd 阶段尽早加载 AMD 显卡驱动，确保 Plymouth 流畅无闪烁渲染
-  boot.initrd.kernelModules = [ "amdgpu" ];
+  # Early KMS: 在 initrd 阶段尽早加载 Intel 核显驱动，确保 Plymouth 流畅无闪烁渲染
+  boot.initrd.kernelModules = [ "i915" ];
 
   boot.kernelParams = [
     "btusb.enable_autosuspend=0"
@@ -65,7 +74,7 @@
     "udev.log_priority=3"
     "systemd.show_status=false"
     "vt.global_cursor_default=0"
-    # 彻底禁用主板厂商 (Dell) ACPI BGRT OEM 开机 Logo
+    # 彻底禁用主板厂商 ACPI BGRT OEM 开机 Logo
     "bgrt_disable"
     "video=efifb:nobgrt"
   ];

@@ -85,8 +85,15 @@ in
         bottom-right = false;
       };
 
-      # 顯示器縮放（eDP-1 為筆電內建螢幕，DP-1 為外接螢幕）
-      outputs."eDP-1".scale = 1.25;
+      # 顯示器配置（eDP-1 為筆電內建 2.5K 165Hz 螢幕，DP-1 為外接螢幕）
+      outputs."eDP-1" = {
+        scale = 1.25;
+        mode = {
+          width = 2560;
+          height = 1440;
+          refresh = 165.0;
+        };
+      };
       outputs."DP-1".scale = 1.25;
 
       blur = {

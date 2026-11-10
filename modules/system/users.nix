@@ -17,6 +17,7 @@
       "libvirtd"
       "kvm"
       "storage"
+      "openrazer" # 允许用户无 root 权限配置雷蛇键盘灯效
     ];
     # shell = pkgs.bash;
     shell = pkgs.fish;

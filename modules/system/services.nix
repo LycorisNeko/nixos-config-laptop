@@ -8,8 +8,11 @@
   security.pam.services.hyprlock = {};
   services.gnome.gnome-keyring.enable = true;
 
-  # 3. 硬體與系統服務配置
+  # 3. 硬體與系統服務配置 (筆電電源管理、散熱與外設)
   services.upower.enable = true;
+  services.power-profiles-daemon.enable = true;
+  services.thermald.enable = true; # Intel CPU 溫控與散熱管理 (防止過熱降頻)
+  hardware.openrazer.enable = true; # 雷蛇筆電鍵盤燈效與驅動支援
   hardware.bluetooth = {
     enable = true;
     settings = {

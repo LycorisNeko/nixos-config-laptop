@@ -51,16 +51,18 @@
 | 游標 | bibata_cursors |
 | 字型 | JetBrainsMono Nerd Font、Fira Code Nerd Font、Hack Nerd Font、Noto Sans CJK（預設中文字型）、LXGW WenKai、AR PL UKai、WenQuanYi Micro Hei |
 | 音訊 | PipeWire + WirePlumber |
-| GPU | AMD Radeon PRO W6800 (RDNA2, amdgpu) |
+| 筆電硬體 | Razer Blade 15 Base (RZ09-0369, i7-10750H, 16GB RAM) |
+| GPU | Intel UHD Graphics + NVIDIA GeForce RTX 3070 Laptop (PRIME Offload) |
+| 螢幕 | 15.6" 2.5K (2560x1440) @ 165Hz (Sharp LQ156T1JW02) |
 | 輸入法 | fcitx5 (拼音, Shift_L 切換, Wayland text-input-v3) |
 | 遊戲 | Steam + Proton、HMCL (Minecraft 啟動器)、Bottles、gamescope、gamemode |
 | 虛擬化 | Docker、virt-manager/QEMU/KVM |
 | 資料庫 | PostgreSQL 17 |
 | 打印 | CUPS、`epson-escpr`、`epson-escpr2`、`system-config-printer` |
-| AI | Ollama (ROCm, llama3.1:8b)、LM Studio、Claude Code、Google Antigravity CLI (`agy`)、Antigravity Tools (`antigravity-manage`) |
+| AI | Ollama (CUDA, llama3.1:8b)、LM Studio、Claude Code、Google Antigravity CLI (`agy`) |
 | 音樂 | 網易雲音樂 (netease-cloud-music-gtk) |
 | 媒體 | MPV、OBS Studio |
-| 3D 建模 | Blender (AMD HIP/ROCm GPU 加速) |
+| 3D 建模 | Blender (NVIDIA OptiX / CUDA GPU 加速) |
 | 筆記 | Obsidian |
 | 通訊 | Discord (Vencord)、Telegram Desktop、微信 (WeChat)、QQ |
 | 瀏覽器 | Google Chrome、Tor Browser |
@@ -280,15 +282,15 @@ nixos-config/
     │   └── features/             # 功能模組 (截圖)
     ├── system/                   # NixOS 系統模組
     │   ├── default.nix           # 模組匯入彙整
-    │   ├── amdgpu.nix            # AMD Radeon PRO W6800 (amdgpu)
+    │   ├── nvidia.nix            # Intel UHD + NVIDIA RTX 3070 (PRIME Offload)
     │   ├── audio.nix             # PipeWire + WirePlumber
-    │   ├── boot.nix              # systemd-boot、核心參數、BBR
+    │   ├── boot.nix              # systemd-boot、Early KMS、核心參數、BBR
     │   ├── fonts.nix             # 系統字型 (CJK 含 Noto Sans CJK、LXGW WenKai、Nerd Fonts)
     │   ├── network.nix           # NetworkManager (本地安全連線管理)
     │   ├── nix.nix               # Nix 設定 (USTC / 清華鏡像、trusted-users、GC、效能調校)
     │   ├── virtualisation.nix    # Docker + 原生 virt-manager / KVM
-    │   ├── ai.nix                # Ollama (ROCm, 已啟用) + LM Studio
-    │   ├── services.nix          # 服務 (PostgreSQL、藍牙、niri、打印/CUPS)
+    │   ├── ai.nix                # Ollama (CUDA 加速) + LM Studio
+    │   ├── services.nix          # 服務 (OpenRazer 燈效、thermald 溫控、藍牙、niri、打印/CUPS)
     │   ├── locale.nix            # 語言環境與紐約時區
     │   ├── users.nix             # 使用者帳號與權限組 (含 adbusers, kvm, docker 等)
     │   └── packages.nix          # 系統套件與服務 (Steam, GameMode, Gamescope, Wireshark, Java, ADB)

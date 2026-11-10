@@ -68,7 +68,7 @@ in
       ];
 
       backlight = {
-        device = "amdgpu_bl0";
+        # 自动探测背光设备（如 intel_backlight）
         format = "{icon} {percent}%";
         format-icons = [
           ""
