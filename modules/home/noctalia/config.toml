@@ -332,36 +332,32 @@ address          = "Huizhou, Guangdong, China" # e.g. "Toronto, ON"; geocoded wh
 
 # ── Idle ──────────────────────────────────────────────────────────────────────
 
-# 全面由 Noctalia 原生接管 Wayland 空闲与休眠，具备 2 秒平滑渐变暗屏动画过渡
+# 關閉自動空閒與休眠，螢幕保持常亮，防止觀影、閱覽或工作時自動滅屏與休眠
 [idle]
-behavior_order = ["dim", "lock", "screen-off", "suspend"]
-pre_action_fade_seconds = 2.0
+behavior_order = []
+pre_action_fade_seconds = 0.0
 
-# 50 分钟：开始逐渐动作，屏幕降低亮度至 20%，恢复活动时自动还原
 [idle.behavior.dim]
 timeout = 3000
 action = "command"
 command = "brightnessctl -s set 20%"
 resume_command = "brightnessctl -r"
-enabled = true
+enabled = false
 
-# 52 分钟：锁定会话，呈现 Noctalia 绝美锁屏
 [idle.behavior.lock]
 timeout = 3120
 action = "lock"
-enabled = true
+enabled = false
 
-# 55 分钟：DPMS 熄灭显示器节省能源，按键或移动鼠标自动点亮
 [idle.behavior.screen-off]
 timeout = 3300
 action = "screen_off"
-enabled = true
+enabled = false
 
-# 60 分钟（1小时）：安全休眠（先锁屏后挂起）
 [idle.behavior.suspend]
 timeout = 3600
 action = "lock_and_suspend"
-enabled = true
+enabled = false
 
 # ── Hot Corners ───────────────────────────────────────────────────────────────
 
