@@ -1,8 +1,8 @@
 <div align="center">
 
-# ❄ nixos-config-l (Laptop)
+# ❄ nixos-config-laptop
 
-**宣告式 NixOS 筆記本配置 — Niri 合成器 + Noctalia 桌面外殼，完全可重現。**
+**宣告式 NixOS 筆記本配置 — Niri 合成器 + Noctalia 桌面外殼 (Razer Blade 15)**
 
 [![NixOS](https://img.shields.io/badge/NixOS-unstable-5277C3?style=flat-square&logo=nixos&logoColor=white)](https://nixos.org)
 [![Niri](https://img.shields.io/badge/WM-niri-8AADF4?style=flat-square)](https://github.com/YaLTeR/niri)
@@ -100,6 +100,9 @@
 ### 系統與效能最佳化
 
 - **極致桌面效能** — 採用 `linuxPackages_xanmod_latest` (XanMod 最新核心)，專為桌面響應速度與低延遲最佳化
+- **雙顯卡混合渲染 (PRIME Offload)** — Intel UHD Graphics 負責日常桌面與影片硬解（iHD 驅動），NVIDIA RTX 3070 (8GB) 支援按需加速 (`nvidia-offload`) 與動態斷電休眠 (`finegrained = true`)，兼顧強勁圖形效能與長效續航
+- **Intel 智慧散熱管理** — 啟用 `thermald` (Intel Thermal Daemon)，深度適配 Comet Lake-H (i7-10750H) 溫控調度，避免發熱降頻
+- **雷蛇生態支援** — 啟用 `hardware.openrazer` 核心驅動與 `polychromatic` 面板，支援鍵盤 Chroma RGB 燈效調控與電池健康管理
 - **記憶體管理** — 啟用 `zramSwap` 壓縮記憶體，配合 `systemd-oomd` 防止 OOM 當機，高負載下依然流暢
 - **檔案系統 (BTRFS)** — 啟用 `compress=zstd` (Zstandard 壓縮)、`noatime`、非同步 SSD TRIM (`discard=async` 與 `fstrim.timer`)，延長 SSD 壽命並大幅提升 I/O 效能
 
@@ -142,7 +145,7 @@
 | cava | 音訊視覺化 |
 | [agy](https://antigravity.google) | Google Antigravity CLI（終端智慧代理客戶端） |
 | [claude-code](https://github.com/sadjow/claude-code-nix) | Anthropic Claude Code AI 終端輔助工具 |
-| [antigravity-tools](https://github.com/lbjlaq/Antigravity-Manager) | Antigravity 帳號管理、額度監控與本地代理（指令別名：`antigravity-manage`、`at`） |
+| [nvtop](https://github.com/Syllo/nvtop) | GPU 資源即時監控（支援 Intel 核顯與 NVIDIA 獨顯） |
 
 ### 遊戲與轉譯層
 
@@ -231,9 +234,10 @@
 ## 目錄結構
 
 ```
-nixos-config/
+nixos-config-laptop/
 ├── flake.nix                     # Flake 輸入與系統定義
 ├── flake.lock                    # 依賴鎖定檔
+├── install.sh                    # 智慧一鍵部署 / Live ISO 安裝腳本
 ├── hardware-configuration.nix    # 硬體掃描輸出
 └── modules/
     ├── home/                     # Home Manager 模組
@@ -261,7 +265,6 @@ nixos-config/
     │   ├── motrix/               # Motrix 下載管理員
     │   ├── qq/                   # QQ Linux 桌面版
     │   ├── wechat/               # WeChat 客户端
-    │   ├── antigravity-manager/  # Antigravity Tools 帳號管理與多模型本地代理
     │   ├── discord/              # Discord (Vencord)
     │   ├── chrome/               # 瀏覽器配置
     │   ├── bottles/              # Bottles (Windows 應用程式管理)
@@ -324,21 +327,28 @@ ping -c 3 nixos.org
 
 ### 3. 套用配置（一鍵部署腳本）
 
-進入系統後，直接使用倉庫內建的 `install.sh` 腳本進行部署。該腳本會自動同步本機硬體配置（`/etc/nixos/hardware-configuration.nix`）、更新 Flake 鎖定檔（`nix flake update`）、暫存檔案並完成系統構建切換：
+進入系統後，直接使用倉庫內建的 `install.sh` 腳本進行部署。該腳本具備**硬體自適應探測**（自動同步 `/etc/nixos/`、Live ISO `/mnt` 或即時透過 `nixos-generate-config` 生成當前筆電精確硬體配置）、**安全 Git 暫存**與**鎖定版本構建**：
 
 ```bash
 # 安裝 git（若尚未安裝）
 sudo nix-env -iA nixos.git
 
-# 複製配置並執行部署腳本
-git clone https://github.com/LycorisNeko/nixos-config.git ~/nixos-config
-cd ~/nixos-config
+# 複製筆電配置倉庫並執行部署腳本
+git clone https://github.com/LycorisNeko/nixos-config-laptop.git ~/nixos-config-laptop
+cd ~/nixos-config-laptop
+
+# 日常部署（使用現有穩定 flake.lock，自動切換新配置）
 ./install.sh
+
+# 進階用法：
+# ./install.sh --update       # 更新全部 flake 上游依賴後構建
+# ./install.sh boot           # 僅加入開機選單，下次開機才生效
+# ./install.sh --install      # Live ISO 全新裝機模式（自動安裝至 /mnt）
 ```
 
 > **說明**：
 > - 腳本提示全程採用**英文字元**，避免初次安裝缺少中文字型時在 TTY 出現方塊亂碼。
-> - 腳本內建 `nix flake update` 步驟，自動更新並確保依賴鎖定檔 (`flake.lock`) 最適化。
+> - 腳本預設使用已驗證的穩定鎖定檔 (`flake.lock`)，避免非預期的依賴破壞與長時間網路下載；如需升級套件可傳入 `--update`。
 > - 部署成功後重啟電腦（`systemctl reboot`），系統將自動啟動並呈現 Hyprlock 鎖屏，輸入你的密碼即可進入 Niri 桌面。
 > - 若鎖定畫面未顯示頭像，可將頭像圖片命名為 `.face` 並放入家目錄（`~/.face`）。
 
@@ -353,7 +363,9 @@ journalctl -b -p 3                       # 查看本次開機的錯誤日誌（�
 
 # 合成器與顯示
 niri msg version                         # 確認 niri 版本
-rocm-smi                                 # AMD GPU 狀態（溫度、時脈、VRAM）
+nvidia-smi                               # NVIDIA RTX 3070 狀態（功耗、時脈、VRAM）
+nvtop                                    # GPU 資源監控（支援 Intel 核顯與 NVIDIA 獨顯）
+nvidia-offload glxinfo | grep "OpenGL renderer" # 驗證 PRIME 獨顯渲染器調用
 
 # 字型與中文顯示
 fc-list | grep -i "lxgw wenkai"          # 確認 LXGW WenKai 字型已安裝
@@ -433,12 +445,13 @@ sudo nix-shell -p open-vm-tools --run "systemctl start open-vm-tools"
 |---|---|
 | 重建失敗：找不到套件 | 執行 `nix flake update` 更新鎖定檔，或檢查套件名稱是否已變更 |
 | 無法登入圖形介面 | 確認 niri 合成器已正確啟動（檢查 `journalctl -b` 中的 niri 相關錯誤） |
-| 桌布小工具未顯示 | 執行 `niri msg outputs` 確認主輸出；座標依 4K 邏輯解析度調整，可用 `noctalia msg desktop-widgets-edit` 微調 |
+| 桌布小工具未顯示 | 執行 `niri msg outputs` 確認主輸出；座標預設依 2.5K 邏輯解析度適配，可用 `noctalia msg desktop-widgets-edit` 微調 |
 | 中文顯示為方塊 | 執行 `fc-cache -fv` 重建字型快取，確認 Noto Sans CJK / LXGW WenKai 字型已安裝 |
 | 輸入法無法使用 | 確認 fcitx5 已啟動（`pgrep fcitx5`），執行 `fcitx5-diagnose` 診斷；Qt 應用需 `QT_IM_MODULE=fcitx`（已於 home 層級設定） |
 | Chrome 無法輸入中文 | 確認 Chrome 以 Wayland 模式啟動（`--ozone-platform=wayland --enable-wayland-ime`，已於 niri 綁定與 desktop entry 設定） |
 | Steam 遊戲無法全螢幕 | 在 Steam 遊戲「啟動選項」加入 `gamescope -e -- %command%` |
-| Ollama 無法使用 GPU | 確認 `ollama-rocm` 已建構，執行 `ollama run llama3.1:8b` 測試 |
+| Ollama 無法使用 GPU | 確認 NVIDIA 驅動正常（`nvidia-smi`），執行 `ollama run llama3.1:8b` 測試 CUDA 加速 |
+| 雷蛇鍵盤燈效無反應 | 確認 `openrazer-daemon` 已啟動，並確認當前使用者已加入 `openrazer` 權限組（`groups | grep openrazer`） |
 | 休眠失敗：`Not enough free memory` | swap 需 ≥ RAM 大小，且 `resume=` 參數指向正確的 swap UUID（參考 [ArchWiki](https://wiki.archlinux.org/title/Power_management/Suspend_and_hibernate)） |
 | 休眠後立即喚醒 | 檢查 `journalctl -b | grep -i hibernate`，確認 swap 空間足夠且未分散於多個 swap |
 | btrfs 空間不足但 `df` 顯示有空間 | 執行 `sudo btrfs balance start /` 重新平衡資料與中繼資料區塊 |
