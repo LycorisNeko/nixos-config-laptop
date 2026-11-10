@@ -19,7 +19,7 @@
     zathura
 
     # Apps consolidated from single-file modules
-    (blender.override { cudaSupport = true; })
+    blender # 使用官方预编译二进制缓存，避免 cudaSupport=true 触发本地编译 openusd 导致 OOM/构建失败
     polychromatic # 雷蛇设备 RGB 灯效与性能图形化控制工具 (OpenRazer GUI)
     hmcl
     obsidian
