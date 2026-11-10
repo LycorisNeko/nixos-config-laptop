@@ -59,7 +59,6 @@
 | 虛擬化 | Docker、virt-manager/QEMU/KVM |
 | 資料庫 | PostgreSQL 17 |
 | 打印 | CUPS、`epson-escpr`、`epson-escpr2`、`system-config-printer` |
-| AI | Ollama (CUDA, llama3.1:8b)、LM Studio、Claude Code、Google Antigravity CLI (`agy`) |
 | 音樂 | 網易雲音樂 (netease-cloud-music-gtk) |
 | 媒體 | MPV、OBS Studio |
 | 3D 建模 | Blender (NVIDIA OptiX / CUDA GPU 加速) |
@@ -126,7 +125,6 @@
 - **Android Studio 行動開發**：
   - 官方穩定版 Android Studio，系統層級提供 `pkgs.android-tools` 並加入 `adbusers` 權限群組，實體裝置 USB 偵錯免除權限阻礙
   - 結合系統 `kvm` 虛擬化權限，AVD 虛擬機硬體加速流暢就緒
-  - 宣告式整合 Google Antigravity 插件生態（`Antigravity CLI Companion` 終端 MCP 協同、`Switch2Antigravity` 一鍵光標同步跳轉與原生 ACP 智能體聯調）
   - 支援 JetBrains 官方簡體中文語言包（`com.intellij.zh`），一鍵轉換完整中文開發介面
 
 ### CLI 環境
@@ -143,8 +141,6 @@
 | [starship](https://starship.rs) | 跨 Shell 提示字元 |
 | bat | 語法高亮的 cat 替代品 |
 | cava | 音訊視覺化 |
-| [agy](https://antigravity.google) | Google Antigravity CLI（終端智慧代理客戶端） |
-| [claude-code](https://github.com/sadjow/claude-code-nix) | Anthropic Claude Code AI 終端輔助工具 |
 | [nvtop](https://github.com/Syllo/nvtop) | GPU 資源即時監控（支援 Intel 核顯與 NVIDIA 獨顯） |
 
 ### 遊戲與轉譯層
@@ -273,12 +269,12 @@ nixos-config-laptop/
     │   ├── virt-manager/         # virt-manager dconf
     │   ├── file-roller/          # 檔案壓縮管理員
     │   ├── wallpapers/           # 桌布收藏
-    │   ├── android-studio/       # Android Studio 整合開發環境 (中文語言包與 Google Antigravity 插件配置)
+    │   ├── android-studio/       # Android Studio 整合開發環境 (中文語言包)
     │   ├── vscode/               # VS Code 宣告式環境 (FHS、外掛生態、繁簡中文、userSettings)
     │   ├── cli/                  # CLI 工具配置 (bat, btop, cava, fastfetch, htop)
     │   ├── devshell/             # 開發環境 (base, Go, Node, Python)
     │   │   └── shells/           # 開發環境定義
-    │   ├── packages.nix          # 使用者套件（Blender, HMCL, Obsidian, 網易雲, Telegram, Claude Code, Antigravity CLI）
+    │   ├── packages.nix          # 使用者套件（Blender, HMCL, Obsidian, 網易雲, Telegram 等）
     │   ├── tools.nix             # CLI 工具 (zoxide, atuin, eza)
     │   ├── deploy-files.nix      # 部署檔案
     │   ├── xdg-portal.nix        # XDG Portal 設定
@@ -292,7 +288,6 @@ nixos-config-laptop/
     │   ├── network.nix           # NetworkManager (本地安全連線管理)
     │   ├── nix.nix               # Nix 設定 (USTC / 清華鏡像、trusted-users、GC、效能調校)
     │   ├── virtualisation.nix    # Docker + 原生 virt-manager / KVM
-    │   ├── ai.nix                # Ollama (CUDA 加速) + LM Studio
     │   ├── services.nix          # 服務 (OpenRazer 燈效、thermald 溫控、藍牙、niri、打印/CUPS)
     │   ├── locale.nix            # 語言環境與紐約時區
     │   ├── users.nix             # 使用者帳號與權限組 (含 adbusers, kvm, docker 等)
@@ -391,7 +386,6 @@ sudo btrfs scrub status /                # 查看 scrub 進度
 # 服務
 systemctl status postgresql              # 查看 PostgreSQL 服務狀態
 systemctl --user status                  # 查看使用者服務狀態
-ollama run llama3.1:8b                   # 測試 Ollama 推理
 ```
 
 ### 命令更改速查
@@ -450,7 +444,6 @@ sudo nix-shell -p open-vm-tools --run "systemctl start open-vm-tools"
 | 輸入法無法使用 | 確認 fcitx5 已啟動（`pgrep fcitx5`），執行 `fcitx5-diagnose` 診斷；Qt 應用需 `QT_IM_MODULE=fcitx`（已於 home 層級設定） |
 | Chrome 無法輸入中文 | 確認 Chrome 以 Wayland 模式啟動（`--ozone-platform=wayland --enable-wayland-ime`，已於 niri 綁定與 desktop entry 設定） |
 | Steam 遊戲無法全螢幕 | 在 Steam 遊戲「啟動選項」加入 `gamescope -e -- %command%` |
-| Ollama 無法使用 GPU | 確認 NVIDIA 驅動正常（`nvidia-smi`），執行 `ollama run llama3.1:8b` 測試 CUDA 加速 |
 | 雷蛇鍵盤燈效無反應 | 確認 `openrazer-daemon` 已啟動，並確認當前使用者已加入 `openrazer` 權限組（`groups | grep openrazer`） |
 | 休眠失敗：`Not enough free memory` | swap 需 ≥ RAM 大小，且 `resume=` 參數指向正確的 swap UUID（參考 [ArchWiki](https://wiki.archlinux.org/title/Power_management/Suspend_and_hibernate)） |
 | 休眠後立即喚醒 | 檢查 `journalctl -b | grep -i hibernate`，確認 swap 空間足夠且未分散於多個 swap |

@@ -36,7 +36,6 @@
     kitty
 
     libreoffice-stable
-    antigravity-cli
 
     # Screenshot tools
     grim
@@ -50,6 +49,4 @@
     bitwig-studio
 
   ];
-
-  programs.claude-code.enable = true;
 }

@@ -14,8 +14,6 @@
     ./services.nix
     ./users.nix
     ./virtualisation.nix
-    ./ai.nix
-
   ];
 
 }

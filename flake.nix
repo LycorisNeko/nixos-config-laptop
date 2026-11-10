@@ -36,11 +36,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    claude-code = {
-      url = "github:sadjow/claude-code-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
   };
 
   outputs =
@@ -49,7 +44,6 @@
       home-manager,
       nixvim,
       nur,
-      claude-code,
       ...
     }:
     {
@@ -67,7 +61,6 @@
             {
               nixpkgs.overlays = [
                 nur.overlays.default
-                claude-code.overlays.default
               ];
 
               # 忽略/放行 GTK2 的 broken 標記
