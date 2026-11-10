@@ -1,0 +1,77 @@
+{ config, ... }:
+{
+  imports = [
+    ./rofi/default.nix
+    ./fcitx5/default.nix              # fcitx5 輸入法框架
+    ./window-managers/default.nix     # window managers
+    ./waybar/default.nix
+    ./gtk/default.nix
+    ./wallpapers
+    ./foot/default.nix
+    ./bash/default.nix
+    ./nixvim/default.nix
+    ./swappy/default.nix
+    ./packages.nix
+    ./virt-manager/default.nix
+    ./starship/default.nix
+    ./tmux/default.nix
+    ./cli/default.nix
+    ./discord/default.nix
+    ./yazi/default.nix
+    ./noctalia/default.nix
+    ./tools.nix
+    ./obs-studio/default.nix
+    ./bottles/default.nix
+    ./qq/default.nix
+    ./wechat/default.nix
+    ./xdg-portal.nix
+    ./chrome/default.nix
+    ./file-roller/default.nix
+    ./fish/default.nix
+    ./deploy-files.nix
+    ./devshell/default.nix
+    ./mpv/default.nix
+    ./motrix/default.nix
+    ./android-studio/default.nix
+    ./vscode/default.nix
+  ];
+
+
+  xdg = {
+    enable = true;
+    userDirs.enable = false;
+    desktopEntries.cups = {
+      name = "Manage Printing";
+      noDisplay = true;
+    };
+  };
+
+  home.sessionPath = [ "$HOME/.local/bin" ];
+  home.sessionVariables = {
+    GOPATH = "${config.xdg.dataHome}/go";
+    PYTHON_HISTORY = "${config.xdg.stateHome}/python/history";
+    NPM_CONFIG_CACHE = "${config.xdg.cacheHome}/npm";
+    NPM_CONFIG_USERCONFIG = "${config.xdg.configHome}/npm/npmrc";
+    WGETRC = "${config.xdg.configHome}/wget/wgetrc";
+    LESSHISTFILE = "${config.xdg.stateHome}/less/history";
+    CARGO_HOME = "${config.xdg.dataHome}/cargo";
+    GNUPGHOME = "${config.xdg.dataHome}/gnupg";
+
+    # fcitx5 輸入法：Wayland 下原生使用 text-input 協議，
+    # Qt 6.7+ 優先 wayland 再 fallback 到 fcitx，避免強制 QT_IM_MODULE=fcitx 觸發 Wayland 自檢警告
+    QT_IM_MODULES = "wayland;fcitx";
+
+    # X11 / XWayland 應用走 XIM 協定呼叫 fcitx5；GTK4 / Wayland 原生使用 text-input 協定，
+    # 官方強烈建議不要全域設定 GTK_IM_MODULE=fcitx 以免破壞 GTK4 原生輸入法支援。
+    XMODIFIERS = "@im=fcitx";
+  };
+
+  xdg.configFile."wget/wgetrc".text = ''
+    continue = on
+  '';
+
+  home.username = "anyneko";
+  home.homeDirectory = "/home/anyneko";
+  home.stateVersion = "25.11";
+
+}

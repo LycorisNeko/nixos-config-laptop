@@ -1,0 +1,453 @@
+<div align="center">
+
+# ❄ nixos-config-l (Laptop)
+
+**宣告式 NixOS 筆記本配置 — Niri 合成器 + Noctalia 桌面外殼，完全可重現。**
+
+[![NixOS](https://img.shields.io/badge/NixOS-unstable-5277C3?style=flat-square&logo=nixos&logoColor=white)](https://nixos.org)
+[![Niri](https://img.shields.io/badge/WM-niri-8AADF4?style=flat-square)](https://github.com/YaLTeR/niri)
+[![Noctalia](https://img.shields.io/badge/Shell-noctalia-C3E88D?style=flat-square)](https://github.com/noctalia-dev/noctalia)
+[![Home Manager](https://img.shields.io/badge/Home_Manager-enabled-CBA6F7?style=flat-square)](https://github.com/nix-community/home-manager)
+
+</div>
+
+---
+
+<div align="center">
+
+| | |
+|:---:|:---:|
+| ![preview-1](previews/preview-1.png) | ![preview-2](previews/preview-2.png) |
+| ![preview-3](previews/preview-3.png) | ![preview-4](previews/preview-4.png) |
+
+</div>
+
+---
+
+## 總覽
+
+一套乾淨、可重現的 NixOS 配置，以 **[niri](https://github.com/YaLTeR/niri)**（可橫向捲動的平鋪式 Wayland 合成器）為核心，搭配 **[noctalia-shell](https://github.com/noctalia-dev/noctalia)**（現代 GTK4 桌面外殼），提供完整的工具列、啟動器、鎖定畫面、桌布挑選器、控制中心與通知系統，全部由桌布動態擷取的色彩方案驅動。
+
+所有內容皆透過 Nix flakes 與 Home Manager 宣告式管理。在任何相容機器上重建，皆可產生完全相同的環境。
+
+---
+
+## 技術棧
+
+| 層級 | 工具 |
+|---|---|
+| 作業系統 | NixOS (unstable) |
+| 核心 | Linux XanMod Latest |
+| 鎖定與認證 | [hyprlock](https://github.com/hyprwm/hyprlock) (Tokyo Night) + Getty Autologin |
+| 合成器 | [niri](https://github.com/YaLTeR/niri) |
+| 桌面外殼 | [noctalia-shell](https://github.com/noctalia-dev/noctalia) (zh-Hant) |
+| 編輯器 / IDE | [nixvim](https://github.com/nix-community/nixvim) (Neovim — Tokyo Night Moon)、[VS Code](https://code.visualstudio.com) (FHS + 繁簡中文 + Tokyo Night + 宣告式外掛生態) |
+| 行動開發 | [Android Studio](https://developer.android.com/studio) (Android 官方整合開發環境、ADB 真機偵錯、AVD 模擬器硬體加速) |
+| 終端機 | [foot](https://codeberg.org/dnkl/foot) / kitty |
+| Shell | bash + [fish](https://fishshell.com) |
+| 提示字元 | [Starship](https://starship.rs) (Tokyo Night Moon 色盤) |
+| GTK 主題 | Colloid-Dark |
+| 圖示 | Papirus-Dark |
+| 游標 | bibata_cursors |
+| 字型 | JetBrainsMono Nerd Font、Fira Code Nerd Font、Hack Nerd Font、Noto Sans CJK（預設中文字型）、LXGW WenKai、AR PL UKai、WenQuanYi Micro Hei |
+| 音訊 | PipeWire + WirePlumber |
+| GPU | AMD Radeon PRO W6800 (RDNA2, amdgpu) |
+| 輸入法 | fcitx5 (拼音, Shift_L 切換, Wayland text-input-v3) |
+| 遊戲 | Steam + Proton、HMCL (Minecraft 啟動器)、Bottles、gamescope、gamemode |
+| 虛擬化 | Docker、virt-manager/QEMU/KVM |
+| 資料庫 | PostgreSQL 17 |
+| 打印 | CUPS、`epson-escpr`、`epson-escpr2`、`system-config-printer` |
+| AI | Ollama (ROCm, llama3.1:8b)、LM Studio、Claude Code、Google Antigravity CLI (`agy`)、Antigravity Tools (`antigravity-manage`) |
+| 音樂 | 網易雲音樂 (netease-cloud-music-gtk) |
+| 媒體 | MPV、OBS Studio |
+| 3D 建模 | Blender (AMD HIP/ROCm GPU 加速) |
+| 筆記 | Obsidian |
+| 通訊 | Discord (Vencord)、Telegram Desktop、微信 (WeChat)、QQ |
+| 瀏覽器 | Google Chrome、Tor Browser |
+| 檔案管理 | Yazi、file-roller |
+| 下載工具 | Motrix |
+
+---
+
+## 功能特色
+
+### Niri — 可捲動平鋪合成器
+
+- **無限橫向捲動** — 工作區向左右延伸，視窗在欄位內垂直堆疊
+- 彈簧式視窗開啟/移動動畫、expo 曲線工作區切換
+- 所有視窗圓角（10–12 px）與陰影
+- 各應用透明度規則 — 終端機 92%、VS Code 94%、Obsidian 93%
+- 透明版面背景，聚焦環漸層（藍 → 深藍，210°）
+- 自然觸控板手勢、focus-follows-mouse、自適應加速
+- 透過 `xwayland-satellite` 提供 XWayland 相容舊版應用程式
+
+### Noctalia 桌面外殼
+
+- **浮動工具列** — 透明背景、外框圓角、中央工作區藥丸指示器
+- **左側小工具**：發行版標誌 → 控制中心、時鐘（含秒）、網路、藍牙、媒體迷你播放器（含波形視覺化）
+- **右側小工具**：系統托盤、CPU/RAM/網路監控、音量、麥克風、夜燈、亮度、電池、通知鈴、工作階段選單
+- **啟動器** — 應用程式搜尋 + 剪貼簿歷史 + 視窗切換器 + 設定搜尋
+- **控制中心** — 個人資料卡、快速開關（Wi-Fi、藍牙、保持喚醒、電源模式、通知、夜燈、桌布）、音訊卡、亮度、天氣、媒體 + 系統監控
+- **桌布挑選器** — 隨機輪播、多種動畫轉場（fade、disc、stripes、wipe、zoom、honeycomb）、Wallhaven 整合
+- **鎖定與認證** — 整合 `hyprlock`（Tokyo Night 配色）與 Getty 靜默登入，開機直達鎖定畫面驗證，原生支援 PAM 認證與動態毛玻璃背景
+- **鎖定畫面** — 模糊 + 色調、倒數計時、可選媒體控制、閒置 5 分鐘調暗、16 分鐘自動鎖定
+- **動態色彩方案** — 桌布產生的 Material You 色彩，同步至 GTK、niri 聚焦環與終端機（透過範本）
+- **夜燈** — 手動或自動排程色溫（夜間 4300 K / 日間 3800 K）
+- **OSD** — 音量、亮度、麥克風覆蓋層顯示於右上角
+
+### 系統與效能最佳化
+
+- **極致桌面效能** — 採用 `linuxPackages_xanmod_latest` (XanMod 最新核心)，專為桌面響應速度與低延遲最佳化
+- **記憶體管理** — 啟用 `zramSwap` 壓縮記憶體，配合 `systemd-oomd` 防止 OOM 當機，高負載下依然流暢
+- **檔案系統 (BTRFS)** — 啟用 `compress=zstd` (Zstandard 壓縮)、`noatime`、非同步 SSD TRIM (`discard=async` 與 `fstrim.timer`)，延長 SSD 壽命並大幅提升 I/O 效能
+
+### 編輯器 — Nixvim
+
+以 Nix 管理的完整 Neovim 配置：
+
+- **色彩主題**：Tokyo Night Moon（支援透明）
+- **LSP**、補全、Treesitter、Telescope、Git 整合（gitsigns）
+- vim-tmux-navigator 無縫窗格導覽
+- 前導鍵：`<Space>`
+
+### 整合開發環境 (IDE)
+
+- **VS Code 宣告式環境**：
+  - 採用 `vscode-fhs` 解決動態連結函式庫相容性問題，第三方語言伺服器與擴充套件無痛運作
+  - 預置官方簡體中文語言包、**Tokyo Night** 主題與 **Material Icon Theme** 圖示
+  - 宣告式整合全套開發外掛：Nix (`nix-ide` 串接 `nixd`)、Web 全棧 (ESLint、Prettier、Tailwind CSS、Auto Rename Tag)、Python、Go、Prisma、Docker、YAML/TOML，以及 **GitLens** 與 **Error Lens**
+  - 開箱即用優化：平滑捲動、字型連字、保存自動排版等舒適設定
+
+- **Android Studio 行動開發**：
+  - 官方穩定版 Android Studio，系統層級提供 `pkgs.android-tools` 並加入 `adbusers` 權限群組，實體裝置 USB 偵錯免除權限阻礙
+  - 結合系統 `kvm` 虛擬化權限，AVD 虛擬機硬體加速流暢就緒
+  - 宣告式整合 Google Antigravity 插件生態（`Antigravity CLI Companion` 終端 MCP 協同、`Switch2Antigravity` 一鍵光標同步跳轉與原生 ACP 智能體聯調）
+  - 支援 JetBrains 官方簡體中文語言包（`com.intellij.zh`），一鍵轉換完整中文開發介面
+
+### CLI 環境
+
+| 工具 | 用途 |
+|---|---|
+| [yazi](https://github.com/sxyazi/yazi) / lf | 終端機檔案管理員 |
+| [zoxide](https://github.com/ajeetdsouza/zoxide) | 智慧目錄跳轉 |
+| [atuin](https://github.com/atuinsh/atuin) | Shell 歷史同步 |
+| [eza](https://github.com/eza-community/eza) | 現代 `ls` 替代品 |
+| [fastfetch](https://github.com/fastfetch-cli/fastfetch) | 系統資訊（現代硬體監控與精美排版） |
+| [btop](https://github.com/aristocratos/btop) / htop | 資源監控 |
+| [tmux](https://github.com/tmux/tmux) | 終端機多工器 |
+| [starship](https://starship.rs) | 跨 Shell 提示字元 |
+| bat | 語法高亮的 cat 替代品 |
+| cava | 音訊視覺化 |
+| [agy](https://antigravity.google) | Google Antigravity CLI（終端智慧代理客戶端） |
+| [claude-code](https://github.com/sadjow/claude-code-nix) | Anthropic Claude Code AI 終端輔助工具 |
+| [antigravity-tools](https://github.com/lbjlaq/Antigravity-Manager) | Antigravity 帳號管理、額度監控與本地代理（指令別名：`antigravity-manage`、`at`） |
+
+### 遊戲與轉譯層
+
+- **Steam** — 完整遊戲平台（系統級 `programs.steam` 啟用，原生配置 32 位元驅動、手柄 udev、FHS 隔離與防火牆），可透過 `xwayland-satellite` 在 niri 下執行
+- **Proton** — Steam 內建 Windows 遊戲相容層；`protonup-qt` 可管理 GE-Proton 等社群版本
+- **Bottles** — 基於 Wine 的 Windows 應用程式管理工具，提供圖形化介面建立與管理相容層
+- **gamescope** — Wayland 遊戲合成器，Steam 遊戲可全螢幕執行（系統級啟用並配置 `capSysNice` 提升排程效能，啟動選項：`gamescope -e -- %command%`）
+- **gamemode** — 系統級遊戲效能最佳化（`programs.gamemode`，具備 Polkit 提權與 CPU Governor 調度權限）
+
+---
+
+## 快捷鍵
+
+> `Mod` = Super
+
+### 應用程式
+
+| 快捷鍵 | 動作 |
+|---|---|
+| `Mod + Return` / `Mod + E` | 開啟終端機 (foot) |
+| `Mod + B` | Chrome 瀏覽器（Wayland 模式 + IME） |
+| `Mod + Q` | 檔案管理員 (Thunar) |
+| `Mod + Space` | 應用程式啟動器 (noctalia) |
+| `Mod + Shift + Space` | 控制中心 (noctalia) |
+| `Mod + Shift + ,` | Noctalia 設定面板 |
+| `Mod + W` | 桌布挑選器 |
+| `Mod + V` | 剪貼簿歷史 (noctalia) |
+| `Mod + S` / `Print` | 區域截圖 |
+| `Mod + Shift + S` / `Shift + Print` | 全螢幕截圖 |
+| `Mod + Escape` | 工作階段選單 |
+
+### 視窗管理
+
+| 快捷鍵 | 動作 |
+|---|---|
+| `Mod + C` | 關閉視窗 |
+| `Mod + F` | 最大化欄位 |
+| `Mod + Shift + F` | 全螢幕 |
+| `Mod + T` | 切換浮動 |
+| `Mod + O` | 切換總覽 (Overview) |
+| `Mod + R` | 循環欄位寬度 (50 / 75 / 100 %) |
+| `Mod + Shift + R` | 重設視窗高度 |
+| `Mod + Shift + O` | 切換視窗透明度規則 |
+| `Mod + H/L` 或 `Mod + ←/→` | 聚焦左/右欄位 |
+| `Mod + J/K` 或 `Mod + ↑/↓` | 聚焦上/下視窗 |
+| `Mod + Home` / `Mod + [` | 聚焦首欄 |
+| `Mod + End` / `Mod + ]` | 聚焦末欄 |
+| `Mod + Ctrl + H/L/J/K` 或 `Mod + Ctrl + ←/→/↑/↓` | 移動欄位/視窗 |
+| `Mod + Shift + ←/→` | 調整欄位寬度 (-/+ 80px) |
+| `Mod + Shift + ↑/↓` | 調整視窗高度 (-/+ 80px) |
+| `Mod + 1–9, 0` | 切換工作區 (1–10) |
+| `Mod + Shift + 1–9, 0` | 移動視窗至工作區 (1–10) |
+
+### 系統
+
+| 快捷鍵 | 動作 |
+|---|---|
+| `Mod + Shift + L` | 鎖定畫面 (hyprlock) |
+| `Mod + Shift + M` | 結束 niri |
+| `Mod + Shift + B` | 切換工具列 (Bar Toggle) |
+| `Mod + Shift + N` | 切換夜燈 (Night Light Toggle) |
+| `Mod + P` | 播放/暫停媒體 |
+| `Mod + Shift + P` | 停止播放媒體 |
+| `Mod + ,` / `Mod + .` | 上一首 / 下一首 |
+| `XF86Audio*` | 音量控制 / 靜音（鎖定畫面亦可用） |
+| `XF86Brightness*` | 亮度調節（鎖定畫面亦可用） |
+| `Shift` (左/右) / `Ctrl + Space` / `Ctrl + Shift` | 切換輸入法 (Windows 習慣，預設拼音) |
+
+### 輸入法切換快捷鍵 (Fcitx5 - Windows 體驗)
+
+系統採用與 **Windows 相同的輸入法習慣**，並**預設開機與開啟新視窗時啟動拼音**：
+
+- **預設啟動拼音**：`ActiveByDefault = True` 且首位輸入法為拼音，全域共享輸入狀態（`ShareInputState = All`）。新開啟視窗直接進入中文拼音，無須先喚醒。
+- **單按 Shift（左 Shift `Shift_L` 或右 Shift `Shift_R`）**：在當前拼音輸入法內部切換**中 / 英文模式**（Windows 體驗，單按即切換英文字母直出與中文拼音候選）。
+- **`Ctrl + Space` (`Control+space`)**：全局輸入法激活 / 切換鍵（Windows 經典熱鍵）。
+- **`Ctrl + Shift` (`Control+Shift`)**：在輸入法之間循環切換（拼音 ↔ 美式英文鍵盤，Windows 經典語言輪換熱鍵）。
+
+> [!NOTE]
+> **輸入法修復與優化細節**：
+> 1. **預設拼音與修飾鍵激活**：Fcitx5 原生機制下，若預設為英文鍵盤且處於 Inactive 狀態，單按 Shift（`AltTriggerKeys`）會因未激活而失效。現已設定 `ActiveByDefault = True` 並將拼音置於第一位，保證開機即用、按 Shift 立即切換中英文。
+> 2. **修飾鍵逾時優化**：設置 `ModifierOnlyKeyTimeout = 500`ms，避免單按 Shift 判定過於嚴苛而漏觸發。
+> 3. **完整模組整合**：補全 `fcitx5-gtk` 與 `qt6Packages.fcitx5-qt` 模組，確保 GTK 與 Qt 應用程式均能完整呼叫輸入法。
+
+---
+
+## 目錄結構
+
+```
+nixos-config/
+├── flake.nix                     # Flake 輸入與系統定義
+├── flake.lock                    # 依賴鎖定檔
+├── hardware-configuration.nix    # 硬體掃描輸出
+└── modules/
+    ├── home/                     # Home Manager 模組
+    │   ├── default.nix           # 模組匯入彙整與環境變數
+    │   ├── window-managers/      # 視窗管理器
+    │   │   ├── default.nix       # 視窗管理器匯總
+    │   │   └── niri/             # Niri 配置、快捷鍵、視窗規則
+    │   ├── noctalia/             # Noctalia 桌面外殼設定 (config.toml)
+    │   ├── nixvim/               # Neovim (LSP、外掛、色彩主題)
+    │   │   ├── keymaps.nix       # 鍵位映射
+    │   │   ├── options.nix       # 編輯器選項
+    │   │   └── plugins/          # nixvim 外掛配置
+    │   ├── waybar/               # Waybar 配置
+    │   │   └── scripts/          # Waybar 輔助腳本
+    │   ├── rofi/                 # Rofi 啟動器與主題樣式
+    │   ├── foot/                 # 終端機模擬器
+    │   ├── fish/                 # Fish shell 配置
+    │   ├── bash/                 # Bash 配置
+    │   ├── starship/             # 提示字元主題
+    │   ├── tmux/                 # Tmux 配置
+    │   ├── yazi/                 # 檔案管理員
+    │   ├── gtk/                  # GTK 主題、圖示、游標
+    │   ├── fcitx5/               # 輸入法框架 (拼音)
+    │   ├── mpv/                  # MPV 媒體播放器
+    │   ├── motrix/               # Motrix 下載管理員
+    │   ├── qq/                   # QQ Linux 桌面版
+    │   ├── wechat/               # WeChat 客户端
+    │   ├── antigravity-manager/  # Antigravity Tools 帳號管理與多模型本地代理
+    │   ├── discord/              # Discord (Vencord)
+    │   ├── chrome/               # 瀏覽器配置
+    │   ├── bottles/              # Bottles (Windows 應用程式管理)
+    │   ├── obs-studio/           # OBS Studio
+    │   ├── swappy/               # 截圖註解
+    │   ├── virt-manager/         # virt-manager dconf
+    │   ├── file-roller/          # 檔案壓縮管理員
+    │   ├── wallpapers/           # 桌布收藏
+    │   ├── android-studio/       # Android Studio 整合開發環境 (中文語言包與 Google Antigravity 插件配置)
+    │   ├── vscode/               # VS Code 宣告式環境 (FHS、外掛生態、繁簡中文、userSettings)
+    │   ├── cli/                  # CLI 工具配置 (bat, btop, cava, fastfetch, htop)
+    │   ├── devshell/             # 開發環境 (base, Go, Node, Python)
+    │   │   └── shells/           # 開發環境定義
+    │   ├── packages.nix          # 使用者套件（Blender, HMCL, Obsidian, 網易雲, Telegram, Claude Code, Antigravity CLI）
+    │   ├── tools.nix             # CLI 工具 (zoxide, atuin, eza)
+    │   ├── deploy-files.nix      # 部署檔案
+    │   ├── xdg-portal.nix        # XDG Portal 設定
+    │   └── features/             # 功能模組 (截圖)
+    ├── system/                   # NixOS 系統模組
+    │   ├── default.nix           # 模組匯入彙整
+    │   ├── amdgpu.nix            # AMD Radeon PRO W6800 (amdgpu)
+    │   ├── audio.nix             # PipeWire + WirePlumber
+    │   ├── boot.nix              # systemd-boot、核心參數、BBR
+    │   ├── fonts.nix             # 系統字型 (CJK 含 Noto Sans CJK、LXGW WenKai、Nerd Fonts)
+    │   ├── network.nix           # NetworkManager (本地安全連線管理)
+    │   ├── nix.nix               # Nix 設定 (USTC / 清華鏡像、trusted-users、GC、效能調校)
+    │   ├── virtualisation.nix    # Docker + 原生 virt-manager / KVM
+    │   ├── ai.nix                # Ollama (ROCm, 已啟用) + LM Studio
+    │   ├── services.nix          # 服務 (PostgreSQL、藍牙、niri、打印/CUPS)
+    │   ├── locale.nix            # 語言環境與紐約時區
+    │   ├── users.nix             # 使用者帳號與權限組 (含 adbusers, kvm, docker 等)
+    │   └── packages.nix          # 系統套件與服務 (Steam, GameMode, Gamescope, Wireshark, Java, ADB)
+    └── scripts/                  # 截圖輔助腳本 (captureFullscreen, captureSelectArea, niri-screenshot)
+```
+
+---
+
+## 安裝與復原
+
+### 1. 系統安裝 (Calamares)
+
+1. 下載 [NixOS 官方圖形化 ISO](https://nixos.org/download/) 並寫入 USB 隨身碟開機。
+2. 啟動安裝程式（Calamares）：
+   - **安裝類型**：選擇 **Minimal**（最小化安裝，無預設桌面）。
+   - **磁碟分割**：建議使用 **btrfs**（`/boot` 設 FAT32 1GB，剩餘空間分給 `/`，`swap` 建議 ≥ RAM 容量以支援休眠）。
+   - **使用者名稱**：
+     - **姓名 / 全名 (Full Name)**：`AnyNeko`（UI 顯示名稱）
+     - **登入使用者名稱 (Username)**：`anyneko`（**全小寫**，與底層系統配置嚴格對齊）
+3. 安裝完成後重啟進入系統。
+
+### 2. 連線網路
+
+```bash
+# 有線網路隨插即用；WiFi 使用 NetworkManager 連線
+nmcli device wifi connect <SSID> password <密碼>
+
+# 檢查網路連線
+ping -c 3 nixos.org
+```
+
+### 3. 套用配置（一鍵部署腳本）
+
+進入系統後，直接使用倉庫內建的 `install.sh` 腳本進行部署。該腳本會自動同步本機硬體配置（`/etc/nixos/hardware-configuration.nix`）、更新 Flake 鎖定檔（`nix flake update`）、暫存檔案並完成系統構建切換：
+
+```bash
+# 安裝 git（若尚未安裝）
+sudo nix-env -iA nixos.git
+
+# 複製配置並執行部署腳本
+git clone https://github.com/LycorisNeko/nixos-config.git ~/nixos-config
+cd ~/nixos-config
+./install.sh
+```
+
+> **說明**：
+> - 腳本提示全程採用**英文字元**，避免初次安裝缺少中文字型時在 TTY 出現方塊亂碼。
+> - 腳本內建 `nix flake update` 步驟，自動更新並確保依賴鎖定檔 (`flake.lock`) 最適化。
+> - 部署成功後重啟電腦（`systemctl reboot`），系統將自動啟動並呈現 Hyprlock 鎖屏，輸入你的密碼即可進入 Niri 桌面。
+> - 若鎖定畫面未顯示頭像，可將頭像圖片命名為 `.face` 並放入家目錄（`~/.face`）。
+
+## 系統檢查
+
+```bash
+# Flake 與系統狀態
+nix flake check                          # 檢查 flake 是否能正確求值並執行測試
+nix flake show                           # 查看 flake 提供的輸出
+sudo nixos-rebuild list-generations      # 列出所有系統世代
+journalctl -b -p 3                       # 查看本次開機的錯誤日誌（優先級 3 = error）
+
+# 合成器與顯示
+niri msg version                         # 確認 niri 版本
+rocm-smi                                 # AMD GPU 狀態（溫度、時脈、VRAM）
+
+# 字型與中文顯示
+fc-list | grep -i "lxgw wenkai"          # 確認 LXGW WenKai 字型已安裝
+fc-cache -fv                             # 重建字型快取（中文顯示為方塊時執行）
+
+# 音訊與輸入法
+wpctl status                             # 查看 PipeWire 音訊裝置與預設輸出
+pactl info                               # 查看 PulseAudio 伺服器資訊
+fcitx5-diagnose                          # 輸入法診斷（fcitx5）
+
+# 休眠與 swap（btrfs 配置）
+cat /sys/power/mem_sleep                 # 確認硬體支援的睡眠狀態（[s2idle] shallow deep）
+swapon --show                            # 確認 swap 已啟用
+cat /proc/cmdline | tr ' ' '\n' | grep resume   # 確認 resume 核心參數指向正確的 swap UUID
+systemctl hibernate                      # 測試休眠（需先確認 swap ≥ RAM 且 resume= 已設定）
+
+# btrfs 檔案系統
+btrfs filesystem usage /                 # 磁碟使用量與可用空間
+btrfs subvolume list /                   # 列出所有子卷
+sudo btrfs scrub start /                 # 開始檢查檔案系統完整性（背景執行）
+sudo btrfs scrub status /                # 查看 scrub 進度
+
+# 服務
+systemctl status postgresql              # 查看 PostgreSQL 服務狀態
+systemctl --user status                  # 查看使用者服務狀態
+ollama run llama3.1:8b                   # 測試 Ollama 推理
+```
+
+### 命令更改速查
+
+```bash
+# 重建與套用
+sudo nixos-rebuild switch --flake .#nixos    # 套用配置（切換到新世代）
+sudo nixos-rebuild test --flake .#nixos      # 測試配置（不永久切換，重開機還原）
+sudo nixos-rebuild boot --flake .#nixos      # 下次開機才套用
+sudo nixos-rebuild dry-run --flake .#nixos   # 乾跑：只顯示會變更的內容，不實際套用
+sudo nixos-rebuild build-vm --flake .#nixos  # 建構為 VM 測試
+
+# Flake 管理
+nix flake update                             # 更新所有輸入（nixpkgs、home-manager、noctalia 等）
+nix flake update nixpkgs                     # 只更新特定輸入
+nix flake lock                               # 重新產生鎖定檔（不更新版本）
+
+# 世代管理與回收
+sudo nixos-rebuild rollback                  # 回滾到上一世代
+sudo nix-collect-garbage -d                  # 刪除所有舊世代並垃圾回收（釋放磁碟空間）
+nix store du --human-readable                # 查看 store 使用量
+
+# Home Manager（整合為 NixOS 模組，見 flake.nix，無獨立 homeConfigurations 輸出）
+sudo nixos-rebuild switch --flake .#nixos    # 套用 home 配置（與系統配置一起）
+home-manager generations                     # 列出 home 世代
+
+# 開發與套件
+nix develop                                  # 進入開發環境（devshell）
+nix search nixpkgs <套件名稱>                 # 搜尋套件
+nix run nixpkgs#<套件名稱>                    # 直接執行套件（不安裝）
+nix shell nixpkgs#<套件名稱>                  # 進入含套件的臨時 shell
+
+# btrfs 快照與備份
+sudo btrfs subvolume snapshot -r / /snapshots/root-$(date +%Y%m%d)   # 建立唯讀快照（復原前先備份）
+sudo btrfs send /snapshots/root-20260101 | sudo btrfs receive /mnt/backup   # 備份快照到外部磁碟
+sudo btrfs balance start /                   # 重新平衡（btrfs 空間不足時）
+
+# 休眠設定（btrfs + swap）
+findmnt -no UUID -T /swap/swapfile           # 取得 swap 所在裝置的 UUID
+sudo btrfs inspect-internal map-swapfile -r /swap/swapfile   # 取得 btrfs swap 檔案的 resume_offset
+# 在 modules/system/boot.nix 的 boot.kernelParams 加入：
+#   "resume=UUID=<swap 的 UUID>"
+#   "resume_offset=<btrfs map-swapfile 的輸出>"
+# 安装VMtools
+sudo nix-shell -p open-vm-tools --run "systemctl start open-vm-tools"
+```
+
+## 疑難排解
+
+| 問題 | 解決方法 |
+|---|---|
+| 重建失敗：找不到套件 | 執行 `nix flake update` 更新鎖定檔，或檢查套件名稱是否已變更 |
+| 無法登入圖形介面 | 確認 niri 合成器已正確啟動（檢查 `journalctl -b` 中的 niri 相關錯誤） |
+| 桌布小工具未顯示 | 執行 `niri msg outputs` 確認主輸出；座標依 4K 邏輯解析度調整，可用 `noctalia msg desktop-widgets-edit` 微調 |
+| 中文顯示為方塊 | 執行 `fc-cache -fv` 重建字型快取，確認 Noto Sans CJK / LXGW WenKai 字型已安裝 |
+| 輸入法無法使用 | 確認 fcitx5 已啟動（`pgrep fcitx5`），執行 `fcitx5-diagnose` 診斷；Qt 應用需 `QT_IM_MODULE=fcitx`（已於 home 層級設定） |
+| Chrome 無法輸入中文 | 確認 Chrome 以 Wayland 模式啟動（`--ozone-platform=wayland --enable-wayland-ime`，已於 niri 綁定與 desktop entry 設定） |
+| Steam 遊戲無法全螢幕 | 在 Steam 遊戲「啟動選項」加入 `gamescope -e -- %command%` |
+| Ollama 無法使用 GPU | 確認 `ollama-rocm` 已建構，執行 `ollama run llama3.1:8b` 測試 |
+| 休眠失敗：`Not enough free memory` | swap 需 ≥ RAM 大小，且 `resume=` 參數指向正確的 swap UUID（參考 [ArchWiki](https://wiki.archlinux.org/title/Power_management/Suspend_and_hibernate)） |
+| 休眠後立即喚醒 | 檢查 `journalctl -b | grep -i hibernate`，確認 swap 空間足夠且未分散於多個 swap |
+| btrfs 空間不足但 `df` 顯示有空間 | 執行 `sudo btrfs balance start /` 重新平衡資料與中繼資料區塊 |
+| btrfs 無法建立快照 | 含啟用中 swap 檔案的子卷無法快照，swap 檔案需放在獨立子卷（如 `/swap`） |
+| Android Studio 介面轉中文 | 啟動後在歡迎畫面「Plugins」（或 `Settings -> Plugins`）的 Marketplace 搜尋「Chinese (Simplified) Language Pack」，安裝後重啟 IDE |
+| Android 真機 USB 偵錯無權限 | 系統已安裝 `android-tools`（由 systemd 258+ 自動處理 uaccess 規則）並納入 `adbusers` 權限群組。若偵錯時顯示 `no permissions`，請重新插拔 USB 或重新登入帳號以更新群組權限 |
+
+---
+
+<div align="center">
+
+以 ❄ 建構於 NixOS，歡迎自由使用與自訂 :)
+
+</div>

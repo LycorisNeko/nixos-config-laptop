@@ -1,0 +1,808 @@
+{ pkgs, lib, config, ... }:
+let
+  niriScreenshot = pkgs.writeShellScriptBin "niri-screenshot.sh" ''
+    export PATH="${pkgs.lib.makeBinPath (with pkgs; [ coreutils findutils wl-clipboard swappy libnotify config.programs.niri.package ])}:$PATH"
+    exec ${pkgs.bash}/bin/bash ${../../../scripts/niri-screenshot.sh} "$@"
+  '';
+in
+{
+  programs.niri = {
+    settings = {
+      prefer-no-csd = true;
+
+      input = {
+        keyboard = {
+          xkb.layout = "us";
+          repeat-delay = 450;
+          repeat-rate = 25;
+        };
+        touchpad = {
+          accel-profile = "adaptive";
+          accel-speed = 0.2;
+          dwt = true;
+          natural-scroll = true;
+          tap = true;
+          scroll-factor = 0.8;
+        };
+        focus-follows-mouse.enable = true;
+      };
+
+      hotkey-overlay = {
+        hide-not-bound = true;
+        skip-at-startup = true;
+      };
+
+      layer-rules = [
+        {
+          # Block notifications from screencast
+          matches = [ { namespace = "^notification$"; } ];
+          block-out-from = "screencast";
+        }
+        {
+          # Noctalia wallpaper in backdrop
+          matches = [ { namespace = "^noctalia-wallpaper.*"; } ];
+          place-within-backdrop = true;
+        }
+        {
+          # Noctalia blurred/tinted backdrop layer (overview blur)
+          matches = [ { namespace = "^noctalia-backdrop.*"; } ];
+          place-within-backdrop = true;
+        }
+        {
+          # Background blur for Noctalia shell UI components
+          matches = [
+            { namespace = "^noctalia-(bar|launcher|control-center|session|dock|card|popup|notifications|indicator).*"; }
+            { namespace = "^waybar$"; }
+            { namespace = "^(launcher|rofi|notifications?|osd)$"; }
+          ];
+          background-effect = {
+            blur = true;
+          };
+        }
+      ];
+
+      cursor = {
+        hide-after-inactive-ms = 3000;
+        hide-when-typing = true;
+        size = 24;
+        theme = "Bibata-Modern-Ice";
+      };
+
+      environment = {
+        XDG_CURRENT_DESKTOP = "niri";
+        XDG_SESSION_DESKTOP = "niri";
+        XCURSOR_THEME = "Bibata-Modern-Ice";
+        XCURSOR_SIZE = "24";
+        xcursor_theme = "Bibata-Modern-Ice";
+        xcursor_size = "24";
+      };
+
+      # 關閉所有觸發熱區 (niri-flake 要求若設定 hot-corners 必須宣告全部四個角)
+      gestures.hot-corners = {
+        top-left = false;
+        top-right = false;
+        bottom-left = false;
+        bottom-right = false;
+      };
+
+      # 顯示器縮放（eDP-1 為筆電內建螢幕，DP-1 為外接螢幕）
+      outputs."eDP-1".scale = 1.25;
+      outputs."DP-1".scale = 1.25;
+
+      blur = {
+        passes = 3;
+        offset = 2.0;
+        noise = 0.02;
+        saturation = 1.2;
+      };
+
+      overview = {
+        workspace-shadow.enable = false;
+        zoom = 0.5;
+      };
+
+      layout = {
+        background-color = "transparent";
+        center-focused-column = "never";
+        default-column-width.proportion = 0.5;
+        focus-ring = {
+          active.gradient = {
+            angle = 210;
+            from = "#80c8ff";
+            relative-to = "workspace-view";
+            to = "#223366";
+          };
+          inactive.gradient = {
+            angle = 45;
+            from = "#505050";
+            relative-to = "workspace-view";
+            to = "#808080";
+          };
+          width = 1;
+        };
+        gaps = 5;
+        preset-column-widths = [
+          { proportion = 0.5; }
+          { proportion = 0.75; }
+          { proportion = 1.0; }
+        ];
+
+        # Shadow behind windows
+        shadow = {
+          enable = true;
+          softness = 30;
+          spread = 5;
+          offset.x = 0;
+          offset.y = 8;
+          color = "#00000060";
+        };
+      };
+
+      animations = {
+        slowdown = 1.0;
+        window-open.kind.spring = {
+          damping-ratio = 0.8;
+          stiffness = 1000;
+          epsilon = 0.0001;
+        };
+        window-close.kind.easing = {
+          duration-ms = 150;
+          curve = "ease-out-cubic";
+        };
+        window-movement.kind.spring = {
+          damping-ratio = 0.8;
+          stiffness = 1000;
+          epsilon = 0.0001;
+        };
+        workspace-switch.kind.easing = {
+          duration-ms = 250;
+          curve = "ease-out-expo";
+        };
+        overview-open-close.kind.easing = {
+          duration-ms = 200;
+          curve = "ease-out-expo";
+        };
+      };
+
+      # Run at startup
+      # 注意：niri 25.08 已內建 xwayland-satellite 自動整合（自動建立 X11 socket、
+      # 匯出 $DISPLAY、按需啟動並在崩潰時自動重啟），因此不可再手動啟動，
+      # 否則會同時存在兩個實例互相競爭 X11 剪貼簿同步，導致貼上偶發失敗。
+      spawn-at-startup = [
+        # 同步環境變數至 systemd 與 D-Bus，保證桌面 Portal 與背景服務正常運作
+        {
+          command = [
+            "bash"
+            "-c"
+            "systemctl --user import-environment WAYLAND_DISPLAY DISPLAY XDG_CURRENT_DESKTOP NIRI_SOCKET PATH && dbus-update-activation-environment --systemd WAYLAND_DISPLAY DISPLAY XDG_CURRENT_DESKTOP NIRI_SOCKET PATH"
+          ];
+        }
+        # 啟動 Polkit 圖形認證代理
+        {
+          command = [
+            "systemctl"
+            "--user"
+            "start"
+            "hyprpolkitagent"
+          ];
+        }
+        # 啟動 fcitx5 輸入法守護行程
+        {
+          command = [
+            "${config.i18n.inputMethod.package}/bin/fcitx5"
+            "-d"
+            "--replace"
+          ];
+        }
+        {
+          command = [
+            "${pkgs.bash}/bin/bash"
+            "-c"
+            "noctalia-sync || true"
+          ];
+        }
+        { command = [ "hyprlock" ]; }
+        { command = [ "noctalia" ]; }
+        {
+          command = [
+            "nm-applet"
+            "--indicator"
+          ];
+        }
+      ];
+
+      screenshot-path = "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png";
+
+      window-rules = [
+        # 1. 全局默认基底规则：为所有窗口与右键/弹出菜单启用毛玻璃模糊与 10px 圆角裁剪
+        {
+          matches = [ { } ];
+          draw-border-with-background = false;
+          geometry-corner-radius = {
+            top-left = 10.0;
+            top-right = 10.0;
+            bottom-left = 10.0;
+            bottom-right = 10.0;
+          };
+          clip-to-geometry = true;
+          background-effect = {
+            blur = true;
+          };
+          popups = {
+            background-effect = {
+              blur = true;
+            };
+          };
+        }
+
+        # 2. 对话框与画中画 (Dialogs & Picture-in-Picture)
+        {
+          matches = [ { title = "^Picture-in-Picture$"; } ];
+          open-floating = true;
+        }
+        {
+          matches = [ { title = "^(Open|Save) File.*$"; } ];
+          open-floating = true;
+          opacity = 0.95;
+          draw-border-with-background = false;
+          geometry-corner-radius = {
+            top-left = 12.0;
+            top-right = 12.0;
+            bottom-left = 12.0;
+            bottom-right = 12.0;
+          };
+          clip-to-geometry = true;
+          background-effect = {
+            blur = true;
+          };
+        }
+        {
+          # 媒体查看器：保持不透明以呈现原画质，启用圆角裁剪
+          matches = [ { app-id = "^(imv|mpv)$"; } ];
+          open-floating = true;
+        }
+
+        # 输入法配置与弹窗浮动
+        {
+          matches = [
+            { app-id = "^org\\.fcitx\\.fcitx5-config-qt$"; }
+            { app-id = "fcitx"; }
+          ];
+          open-floating = true;
+        }
+
+        # 2. 终端模拟器 (Terminal Emulators) - 毛玻璃半透明
+        {
+          matches = [
+            { app-id = "^foot$"; }
+            { app-id = "^(kitty|Kitty)$"; }
+          ];
+          opacity = 0.92;
+          draw-border-with-background = false;
+          geometry-corner-radius = {
+            top-left = 10.0;
+            top-right = 10.0;
+            bottom-left = 10.0;
+            bottom-right = 10.0;
+          };
+          clip-to-geometry = true;
+          background-effect = {
+            blur = true;
+          };
+        }
+
+        # 3. 开发工具与代码编辑器 (IDEs & Editors)
+        {
+          matches = [
+            { app-id = "^(code|Code)$"; }
+            { app-id = "^(postman|Postman)$"; }
+          ];
+          opacity = 0.94;
+          draw-border-with-background = false;
+          geometry-corner-radius = {
+            top-left = 10.0;
+            top-right = 10.0;
+            bottom-left = 10.0;
+            bottom-right = 10.0;
+          };
+          clip-to-geometry = true;
+          background-effect = {
+            blur = true;
+          };
+        }
+
+        # 4. 笔记与文档阅读 (Notes & Documents)
+        {
+          matches = [
+            { app-id = "^obsidian$"; }
+            { app-id = "^(org.pwmt.zathura|zathura)$"; }
+          ];
+          opacity = 0.93;
+          draw-border-with-background = false;
+          geometry-corner-radius = {
+            top-left = 12.0;
+            top-right = 12.0;
+            bottom-left = 12.0;
+            bottom-right = 12.0;
+          };
+          clip-to-geometry = true;
+          background-effect = {
+            blur = true;
+          };
+        }
+
+        # 5. 网页浏览器 (Web Browsers)
+        {
+          matches = [
+            { app-id = "^(google-chrome|google-chrome-stable|chromium-browser)$"; }
+          ];
+          opacity = 0.92;
+          draw-border-with-background = false;
+          geometry-corner-radius = {
+            top-left = 10.0;
+            top-right = 10.0;
+            bottom-left = 10.0;
+            bottom-right = 10.0;
+          };
+          clip-to-geometry = true;
+          background-effect = {
+            blur = true;
+          };
+        }
+
+        # 6. 音乐与媒体客户端 (Music Players)
+        {
+          matches = [
+            { app-id = "^spotify$"; }
+            { app-id = "^(netease-cloud-music-gtk4?|netease-cloud-music)$"; }
+          ];
+          open-floating = true;
+          default-column-width.fixed = 1200;
+          default-window-height.fixed = 800;
+          opacity = 0.92;
+          draw-border-with-background = false;
+          geometry-corner-radius = {
+            top-left = 12.0;
+            top-right = 12.0;
+            bottom-left = 12.0;
+            bottom-right = 12.0;
+          };
+          clip-to-geometry = true;
+          background-effect = {
+            blur = true;
+          };
+        }
+
+        # 7. 即时通讯与社交应用 (IM & Chat)
+        {
+          matches = [
+            { app-id = "^(discord|Discord|vesktop)$"; }
+            { app-id = "^(QQ|qq)$"; }
+            { app-id = "^(wechat|WeChat)$"; }
+          ];
+          opacity = 0.93;
+          draw-border-with-background = false;
+          geometry-corner-radius = {
+            top-left = 12.0;
+            top-right = 12.0;
+            bottom-left = 12.0;
+            bottom-right = 12.0;
+          };
+          clip-to-geometry = true;
+          background-effect = {
+            blur = true;
+          };
+        }
+
+        # 8. 系统工具与控制面板 (System Utilities & Control Panels)
+        {
+          matches = [ { app-id = "^pavucontrol$"; } ];
+          open-floating = true;
+          default-column-width.fixed = 800;
+          default-window-height.fixed = 600;
+          opacity = 0.92;
+          draw-border-with-background = false;
+          geometry-corner-radius = {
+            top-left = 12.0;
+            top-right = 12.0;
+            bottom-left = 12.0;
+            bottom-right = 12.0;
+          };
+          clip-to-geometry = true;
+          background-effect = {
+            blur = true;
+          };
+        }
+        {
+          matches = [ { app-id = "^nm-connection-editor$"; } ];
+          open-floating = true;
+          opacity = 0.95;
+          draw-border-with-background = false;
+          geometry-corner-radius = {
+            top-left = 12.0;
+            top-right = 12.0;
+            bottom-left = 12.0;
+            bottom-right = 12.0;
+          };
+          clip-to-geometry = true;
+          background-effect = {
+            blur = true;
+          };
+        }
+        {
+          matches = [ { app-id = "^org.gnome.Calculator$"; } ];
+          open-floating = true;
+          opacity = 0.92;
+          draw-border-with-background = false;
+          geometry-corner-radius = {
+            top-left = 12.0;
+            top-right = 12.0;
+            bottom-left = 12.0;
+            bottom-right = 12.0;
+          };
+          clip-to-geometry = true;
+          background-effect = {
+            blur = true;
+          };
+        }
+        {
+          matches = [ { app-id = "^(Thunar|thunar)$"; } ];
+          open-floating = true;
+          default-column-width.fixed = 1400;
+          default-window-height.fixed = 1000;
+          opacity = 0.94;
+          draw-border-with-background = false;
+          geometry-corner-radius = {
+            top-left = 12.0;
+            top-right = 12.0;
+            bottom-left = 12.0;
+            bottom-right = 12.0;
+          };
+          clip-to-geometry = true;
+          background-effect = {
+            blur = true;
+          };
+        }
+        {
+          matches = [ { app-id = "^(org.gnome.FileRoller|file-roller)$"; } ];
+          open-floating = true;
+          opacity = 0.95;
+          draw-border-with-background = false;
+          geometry-corner-radius = {
+            top-left = 12.0;
+            top-right = 12.0;
+            bottom-left = 12.0;
+            bottom-right = 12.0;
+          };
+          clip-to-geometry = true;
+          background-effect = {
+            blur = true;
+          };
+        }
+        {
+          matches = [
+            { app-id = "^(virt-manager|org.virt-manager.virt-manager)$"; }
+            { app-id = "^(com.usebottles.bottles|bottles)$"; }
+            { app-id = "^(org.gnome.SystemMonitor|gnome-system-monitor)$"; }
+            { app-id = "^(org.jackhuang.hmcl.Launcher|hmcl)$"; }
+          ];
+          opacity = 0.94;
+          draw-border-with-background = false;
+          geometry-corner-radius = {
+            top-left = 12.0;
+            top-right = 12.0;
+            bottom-left = 12.0;
+            bottom-right = 12.0;
+          };
+          clip-to-geometry = true;
+          background-effect = {
+            blur = true;
+          };
+        }
+        {
+          matches = [ { app-id = "^(Swappy|swappy)$"; } ];
+          draw-border-with-background = false;
+          geometry-corner-radius = {
+            top-left = 12.0;
+            top-right = 12.0;
+            bottom-left = 12.0;
+            bottom-right = 12.0;
+          };
+          clip-to-geometry = true;
+          background-effect = {
+            blur = true;
+          };
+        }
+        {
+          matches = [ { app-id = "^(Rofi|rofi)$"; } ];
+          draw-border-with-background = false;
+          geometry-corner-radius = {
+            top-left = 20.0;
+            top-right = 20.0;
+            bottom-left = 20.0;
+            bottom-right = 20.0;
+          };
+          clip-to-geometry = true;
+          background-effect = {
+            blur = true;
+          };
+        }
+
+        # 9. 浮动窗口：采用真实背景模糊（关闭 xray，重叠于窗口之上时模糊底层窗口）
+        {
+          matches = [ { is-floating = true; } ];
+          background-effect = {
+            xray = false;
+          };
+        }
+
+        # 11. Telegram Desktop：Qt 自带 CSD 阴影缓冲区，开启模糊会导致窗口及弹窗四周多出一圈毛玻璃外边
+        # 禁用背景模糊与弹窗模糊，并将透明度调整为 0.9
+        {
+          matches = [
+            { app-id = "^(org.telegram.desktop|telegramdesktop)$"; }
+          ];
+          opacity = 0.9;
+          draw-border-with-background = false;
+          geometry-corner-radius = {
+            top-left = 10.0;
+            top-right = 10.0;
+            bottom-left = 10.0;
+            bottom-right = 10.0;
+          };
+          clip-to-geometry = true;
+          background-effect = {
+            blur = false;
+          };
+          popups = {
+            background-effect = {
+              blur = false;
+            };
+          };
+        }
+      ];
+
+      # Keybindings
+      binds = {
+
+        # Apps
+        "Mod+Return".action.spawn = [ "foot" ];
+        "Mod+E".action.spawn = [ "foot" ];
+        # Chrome 以 Wayland 模式啟動並啟用 IME（text-input-v3）
+        "Mod+B".action.spawn = [
+          "google-chrome-stable"
+          "--ozone-platform=wayland"
+          "--enable-wayland-ime"
+        ];
+        "Mod+Q".action.spawn = [ "thunar" ];
+
+        "Mod+Escape".action.spawn = [
+          "noctalia"
+          "msg"
+          "panel-toggle"
+          "session"
+        ];
+
+        # Launcher
+        "Mod+Space".action.spawn = [
+          "noctalia"
+          "msg"
+          "panel-toggle"
+          "launcher"
+        ];
+
+        # controlCenter
+        "Mod+Shift+Space".action.spawn = [
+          "noctalia"
+          "msg"
+          "panel-toggle"
+          "control-center"
+        ];
+
+        # Noctalia Settings
+        "Mod+Shift+Comma".action.spawn = [
+          "noctalia"
+          "msg"
+          "settings-toggle"
+        ];
+
+        # Wallpaper picker
+        "Mod+W".action.spawn = [
+          "noctalia"
+          "msg"
+          "panel-toggle"
+          "wallpaper"
+        ];
+
+        # Clipboard history (Noctalia)
+        "Mod+V".action.spawn = [
+          "noctalia"
+          "msg"
+          "panel-toggle"
+          "clipboard"
+        ];
+
+        # Screenshots
+        "Mod+S".action.spawn = [ "${niriScreenshot}/bin/niri-screenshot.sh" ];
+        "Mod+Shift+S".action.spawn = [
+          "${niriScreenshot}/bin/niri-screenshot.sh"
+          "screen"
+        ];
+        "Print".action.spawn = [ "${niriScreenshot}/bin/niri-screenshot.sh" ];
+        "Shift+Print".action.spawn = [
+          "${niriScreenshot}/bin/niri-screenshot.sh"
+          "screen"
+        ];
+
+        # Window management
+        "Mod+C".action.close-window = { };
+        "Mod+F".action.maximize-column = { };
+        "Mod+Shift+F".action.fullscreen-window = { };
+        "Mod+T".action.toggle-window-floating = { };
+        "Mod+O".action.toggle-overview = { };
+
+        # Column width cycling
+        "Mod+R".action.switch-preset-column-width = { };
+        "Mod+Shift+R".action.reset-window-height = { };
+
+        # Focus
+        "Mod+H".action.focus-column-left = { };
+        "Mod+L".action.focus-column-right = { };
+        "Mod+J".action.focus-window-or-workspace-down = { };
+        "Mod+K".action.focus-window-or-workspace-up = { };
+        "Mod+Left".action.focus-column-left = { };
+        "Mod+Right".action.focus-column-right = { };
+        "Mod+Up".action.focus-window-or-workspace-up = { };
+        "Mod+Down".action.focus-window-or-workspace-down = { };
+
+        "Mod+Home".action.focus-column-first = { };
+        "Mod+End".action.focus-column-last = { };
+        "Mod+BracketLeft".action.focus-column-first = { };
+        "Mod+BracketRight".action.focus-column-last = { };
+
+        # Move windows
+        "Mod+Ctrl+H".action.move-column-left = { };
+        "Mod+Ctrl+L".action.move-column-right = { };
+        "Mod+Ctrl+J".action.move-window-down = { };
+        "Mod+Ctrl+K".action.move-window-up = { };
+        "Mod+Ctrl+Left".action.move-column-left = { };
+        "Mod+Ctrl+Right".action.move-column-right = { };
+        "Mod+Ctrl+Down".action.move-window-down = { };
+        "Mod+Ctrl+Up".action.move-window-up = { };
+
+        # Resize
+        "Mod+Shift+Right".action.set-column-width = "+80";
+        "Mod+Shift+Left".action.set-column-width = "-80";
+        "Mod+Shift+Down".action.set-window-height = "+80";
+        "Mod+Shift+Up".action.set-window-height = "-80";
+
+        # Workspaces (Mod+1-9 = focus workspace)
+        # Super+1-9 switches workspace
+        # Super+Shift+1-9 moves window to workspace
+        "Mod+1".action.focus-workspace = 1;
+        "Mod+2".action.focus-workspace = 2;
+        "Mod+3".action.focus-workspace = 3;
+        "Mod+4".action.focus-workspace = 4;
+        "Mod+5".action.focus-workspace = 5;
+        "Mod+6".action.focus-workspace = 6;
+        "Mod+7".action.focus-workspace = 7;
+        "Mod+8".action.focus-workspace = 8;
+        "Mod+9".action.focus-workspace = 9;
+        "Mod+0".action.focus-workspace = 10;
+
+        "Mod+Shift+1".action.move-window-to-workspace = 1;
+        "Mod+Shift+2".action.move-window-to-workspace = 2;
+        "Mod+Shift+3".action.move-window-to-workspace = 3;
+        "Mod+Shift+4".action.move-window-to-workspace = 4;
+        "Mod+Shift+5".action.move-window-to-workspace = 5;
+        "Mod+Shift+6".action.move-window-to-workspace = 6;
+        "Mod+Shift+7".action.move-window-to-workspace = 7;
+        "Mod+Shift+8".action.move-window-to-workspace = 8;
+        "Mod+Shift+9".action.move-window-to-workspace = 9;
+        "Mod+Shift+0".action.move-window-to-workspace = 10;
+
+        # Toggle window opacity
+        "Mod+Shift+O".action.toggle-window-rule-opacity = { };
+
+        # Session
+        "Mod+Shift+M".action.quit = { };
+
+        "Mod+Shift+B".action.spawn = [
+          "noctalia"
+          "msg"
+          "bar-toggle"
+        ];
+
+        "Mod+Shift+N".action.spawn = [
+          "noctalia"
+          "msg"
+          "nightlight-toggle"
+        ];
+        "Mod+Shift+L".action.spawn = [
+          "${pkgs.bash}/bin/bash"
+          "-c"
+          "noctalia-sync || true; exec hyprlock"
+        ];
+
+        # Media
+        "Mod+P".action.spawn = [
+          "playerctl"
+          "play-pause"
+        ];
+        "Mod+Shift+P".action.spawn = [
+          "playerctl"
+          "stop"
+        ];
+        "Mod+comma".action.spawn = [
+          "playerctl"
+          "previous"
+        ];
+        "Mod+period".action.spawn = [
+          "playerctl"
+          "next"
+        ];
+
+        # Volume
+        "XF86AudioRaiseVolume" = {
+          allow-when-locked = true;
+          action.spawn = [
+            "wpctl"
+            "set-volume"
+            "@DEFAULT_AUDIO_SINK@"
+            "5%+"
+          ];
+        };
+        "XF86AudioLowerVolume" = {
+          allow-when-locked = true;
+          action.spawn = [
+            "wpctl"
+            "set-volume"
+            "@DEFAULT_AUDIO_SINK@"
+            "5%-"
+          ];
+        };
+        "XF86AudioMute" = {
+          allow-when-locked = true;
+          action.spawn = [
+            "wpctl"
+            "set-mute"
+            "@DEFAULT_AUDIO_SINK@"
+            "toggle"
+          ];
+        };
+        "XF86AudioMicMute" = {
+          allow-when-locked = true;
+          action.spawn = [
+            "wpctl"
+            "set-mute"
+            "@DEFAULT_AUDIO_SOURCE@"
+            "toggle"
+          ];
+        };
+
+        # Brightness
+        "XF86MonBrightnessUp" = {
+          allow-when-locked = true;
+          action.spawn = [
+            "brightnessctl"
+            "set"
+            "5%+"
+          ];
+        };
+        "XF86MonBrightnessDown" = {
+          allow-when-locked = true;
+          action.spawn = [
+            "brightnessctl"
+            "set"
+            "5%-"
+          ];
+        };
+      };
+    };
+  };
+
+  home.packages = with pkgs; [
+    xwayland-satellite
+    niriScreenshot
+  ];
+}

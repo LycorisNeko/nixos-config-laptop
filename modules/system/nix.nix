@@ -1,0 +1,52 @@
+{ inputs, ... }:
+{
+  nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.allowUnfreePredicate = _: true;
+
+  nix.settings = {
+    experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
+    auto-optimise-store = true;
+    substituters = [
+      # 中科大二进制缓存镜像（建议优先，国内最稳定之一）
+      "https://mirrors.ustc.edu.cn/nix-channels/store"
+      # 清华大学二进制缓存镜像（备选）
+      "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
+      # 官方二进制缓存（兜底）
+      "https://cache.nixos.org"
+      "https://nix-community.cachix.org"
+      "https://niri.cachix.org"
+      "https://noctalia.cachix.org"
+    ];
+    trusted-public-keys = [
+      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "niri.cachix.org-1:Wv0OmO7PsuocRKzfDoJ3mulSl7Z6oezYhGhR+3W2964="
+      "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
+    ];
+    max-jobs = "auto";
+  };
+
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 7d";
+  };
+
+  # 自动垃圾回收后，联动刷新 bootloader 启动项，彻底清除 /boot 中已回收构建的残余条目与旧内核
+  systemd.services.nix-gc = {
+    serviceConfig.ExecStartPost = [
+      "/run/current-system/bin/switch-to-configuration boot"
+    ];
+  };
+
+  powerManagement.cpuFreqGovernor = "performance";
+
+  system.stateVersion = "25.11";
+
+  nix.registry.nixpkgs.flake = inputs.nixpkgs;
+  nix.nixPath = [ "nixpkgs=${inputs.nixpkgs}" ];
+
+}
