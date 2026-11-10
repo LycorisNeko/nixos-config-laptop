@@ -12,7 +12,7 @@
     extraPackages = with pkgs; [
       intel-media-driver # iHD 驱动：Intel Comet Lake-H 硬件编解码
       intel-vaapi-driver # i965 驱动回退
-      vaapiVdpau
+      libva-vdpau-driver
       libvdpau-va-gl
       nvidia-vaapi-driver # NVIDIA NVDEC 硬件加速
     ];
