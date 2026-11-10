@@ -59,9 +59,8 @@
           (
             { pkgs, ... }:
             {
-              nixpkgs.overlays = [
-                nur.overlays.default
-              ];
+              # 保持 overlays 为空，避免全局 overlay 篡改底层包导致 python3 等基础库的缓存哈希失效并引发本地漫长重编译
+              nixpkgs.overlays = [ ];
 
               # 忽略/放行 GTK2 的 broken 標記
               nixpkgs.config = {

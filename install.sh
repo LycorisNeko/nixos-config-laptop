@@ -99,13 +99,22 @@ fi
 
 # 4. Rebuild / Install NixOS configuration
 echo -e "${GREEN}[4/4] Applying NixOS configuration...${NC}"
+
+# 显式注入二进制缓存参数与平滑回退，防止旧 /etc/nix/nix.conf 未生效或官方源网络超时导致回退到本地编译 python3 等核心基础包
+CACHE_OPTS=(
+    --option substituters "https://mirrors.ustc.edu.cn/nix-channels/store https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store https://cache.nixos.org https://nix-community.cachix.org https://niri.cachix.org https://noctalia.cachix.org"
+    --option extra-trusted-public-keys "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= niri.cachix.org-1:Wv0OmO7PsuocRKzfDoJ3mulSl7Z6oezYhGhR+3W2964= noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
+    --option connect-timeout 5
+    --fallback
+)
+
 if [ "$IS_INSTALL" = true ]; then
     echo -e "  Executing fresh system installation via nixos-install (target: /mnt)..."
-    sudo nixos-install --flake .#nixos --root /mnt
+    sudo nixos-install --flake .#nixos --root /mnt "${CACHE_OPTS[@]}"
 else
     echo -e "  Executing nixos-rebuild $ACTION (target: .#nixos)..."
     echo -e "${YELLOW}Notice: Please enter your sudo password if prompted.${NC}"
-    sudo nixos-rebuild "$ACTION" --flake .#nixos --show-trace
+    sudo nixos-rebuild "$ACTION" --flake .#nixos --show-trace "${CACHE_OPTS[@]}"
 fi
 
 echo -e "${GREEN}=======================================${NC}"
