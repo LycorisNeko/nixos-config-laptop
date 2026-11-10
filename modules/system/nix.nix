@@ -9,6 +9,11 @@
       "flakes"
     ];
     auto-optimise-store = true;
+    trusted-users = [
+      "root"
+      "@wheel"
+      "anyneko"
+    ];
     substituters = [
       # 中科大二进制缓存镜像（建议优先，国内最稳定之一）
       "https://mirrors.ustc.edu.cn/nix-channels/store"
@@ -26,6 +31,10 @@
       "niri.cachix.org-1:Wv0OmO7PsuocRKzfDoJ3mulSl7Z6oezYhGhR+3W2964="
       "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
     ];
+    # 避免单个镜像超时阻塞，当镜像源 404 或未同步时自动平滑回退，防止直接回退到本地编译
+    connect-timeout = 5;
+    fallback = true;
+    builders-use-substitutes = true;
     max-jobs = "auto";
   };
 
