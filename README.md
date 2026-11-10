@@ -164,6 +164,8 @@
 | `Mod + Return` / `Mod + E` | 開啟終端機 (foot) |
 | `Mod + B` | Chrome 瀏覽器（Wayland 模式 + IME） |
 | `Mod + Q` | 檔案管理員 (Thunar) |
+| `Mod + Alt + R` | 一鍵重啟輸入法守護行程 (fcitx5) |
+| `Mod + Alt + I` | 開啟輸入法圖形配置介面 (fcitx5-configtool) |
 | `Mod + Space` | 應用程式啟動器 (noctalia) |
 | `Mod + Shift + Space` | 控制中心 (noctalia) |
 | `Mod + Shift + ,` | Noctalia 設定面板 |
@@ -214,16 +216,19 @@
 
 系統採用與 **Windows 相同的輸入法習慣**，並**預設開機與開啟新視窗時啟動拼音**：
 
-- **預設啟動拼音**：`ActiveByDefault = True` 且首位輸入法為拼音，全域共享輸入狀態（`ShareInputState = All`）。新開啟視窗直接進入中文拼音，無須先喚醒。
-- **單按 Shift（左 Shift `Shift_L` 或右 Shift `Shift_R`）**：在當前拼音輸入法內部切換**中 / 英文模式**（Windows 體驗，單按即切換英文字母直出與中文拼音候選）。
+- **預設啟動拼音**：`ActiveByDefault = True` 且設定 `DefaultIM = pinyin`，全域共享輸入狀態（`ShareInputState = All`）。新開啟視窗直接進入中文拼音，無須先喚醒。
+- **單按 Shift（左 Shift `Shift_L` 或右 Shift `Shift_R`）**：在當前拼音輸入法與美式鍵盤之間切換**中 / 英文模式**（Windows 體驗，單按即切換英文字母直出與中文拼音候選）。
 - **`Ctrl + Space` (`Control+space`)**：全局輸入法激活 / 切換鍵（Windows 經典熱鍵）。
 - **`Ctrl + Shift` (`Control+Shift`)**：在輸入法之間循環切換（拼音 ↔ 美式英文鍵盤，Windows 經典語言輪換熱鍵）。
+- **`Mod + Alt + R`**：一鍵熱重啟 Fcitx 5 守護行程（遇到偶發失焦或無響應時瞬間復位）。
+- **`Mod + Alt + I`**：開啟 Fcitx 5 圖形配置工具（`fcitx5-configtool`）。
 
 > [!NOTE]
 > **輸入法修復與優化細節**：
-> 1. **預設拼音與修飾鍵激活**：Fcitx5 原生機制下，若預設為英文鍵盤且處於 Inactive 狀態，單按 Shift（`AltTriggerKeys`）會因未激活而失效。現已設定 `ActiveByDefault = True` 並將拼音置於第一位，保證開機即用、按 Shift 立即切換中英文。
+> 1. **規範項目順序與激活機制**：Fcitx 5 的群組第 0 項（`Groups/0/Items/0`）為 Inactive（未激活）狀態之基底，必須為美式鍵盤（`keyboard-us`），第 1 項為拼音（`pinyin`）。透過 `ActiveByDefault = True` 與 `DefaultIM = pinyin` 實現開機即為中文，單按 Shift 或 `Ctrl + Space` 即可在未激活（英）與激活（中）之間完美切換，杜絕兩狀態皆為拼音而導致快捷鍵無效的缺陷。
 > 2. **修飾鍵逾時優化**：設置 `ModifierOnlyKeyTimeout = 500`ms，避免單按 Shift 判定過於嚴苛而漏觸發。
-> 3. **完整模組整合**：補全 `fcitx5-gtk` 與 `qt6Packages.fcitx5-qt` 模組，確保 GTK 與 Qt 應用程式均能完整呼叫輸入法。
+> 3. **完整 Wayland / Niri 環境變數注入**：在 Niri 合成器環境與 D-Bus/systemd 啟動環境中補齊 `QT_IM_MODULE=fcitx`、`XMODIFIERS=@im=fcitx`、`SDL_IM_MODULE=fcitx`、`GLFW_IM_MODULE=ibus` 與 `NIXOS_OZONE_WL=1`，確保 Foot、Chrome、VS Code、GTK4、Qt 及 Electron 應用程式均能完整呼叫輸入法。
+> 4. **循環防漏項**：啟用 `EnumerateWithTriggerKeys = True` 與 `EnumerateSkipFirst = False`，保證前向/後向切換順暢無衝突。
 
 ---
 

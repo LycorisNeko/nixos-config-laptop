@@ -10,6 +10,7 @@
       addons = with pkgs; [
         fcitx5-gtk
         qt6Packages.fcitx5-qt
+        kdePackages.fcitx5-configtool
         fcitx5-mellow-themes
         qt6Packages.fcitx5-chinese-addons
         fcitx5-pinyin-zhwiki
@@ -25,6 +26,7 @@
           };
           Hotkey = {
             EnumerateWithTriggerKeys = "True";
+            EnumerateSkipFirst = "False";
             ModifierOnlyKeyTimeout = 500;
           };
           "Hotkey/TriggerKeys" = {
@@ -36,7 +38,6 @@
           };
           "Hotkey/EnumerateForwardKeys" = {
             "0" = "Control+Shift_L"; # Ctrl + Shift 切換輸入法（Windows 習慣）
-            "1" = "Control+Shift_R";
           };
           "Hotkey/EnumerateBackwardKeys" = {
             "0" = "Control+Shift_R";
@@ -49,8 +50,8 @@
             "Default Layout" = "us";
             DefaultIM = "pinyin";
           };
-          "Groups/0/Items/0".Name = "pinyin";
-          "Groups/0/Items/1".Name = "keyboard-us";
+          "Groups/0/Items/0".Name = "keyboard-us";
+          "Groups/0/Items/1".Name = "pinyin";
         };
         addons = {
           classicui.globalSection = {

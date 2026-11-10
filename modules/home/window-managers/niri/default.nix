@@ -75,6 +75,11 @@ in
         XCURSOR_SIZE = "24";
         xcursor_theme = "Bibata-Modern-Ice";
         xcursor_size = "24";
+        QT_IM_MODULE = "fcitx";
+        XMODIFIERS = "@im=fcitx";
+        SDL_IM_MODULE = "fcitx";
+        GLFW_IM_MODULE = "ibus";
+        NIXOS_OZONE_WL = "1";
       };
 
       # 關閉所有觸發熱區 (niri-flake 要求若設定 hot-corners 必須宣告全部四個角)
@@ -181,7 +186,7 @@ in
           command = [
             "bash"
             "-c"
-            "systemctl --user import-environment WAYLAND_DISPLAY DISPLAY XDG_CURRENT_DESKTOP NIRI_SOCKET PATH && dbus-update-activation-environment --systemd WAYLAND_DISPLAY DISPLAY XDG_CURRENT_DESKTOP NIRI_SOCKET PATH"
+            "systemctl --user import-environment WAYLAND_DISPLAY DISPLAY XDG_CURRENT_DESKTOP NIRI_SOCKET PATH QT_IM_MODULE XMODIFIERS SDL_IM_MODULE GLFW_IM_MODULE NIXOS_OZONE_WL && dbus-update-activation-environment --systemd WAYLAND_DISPLAY DISPLAY XDG_CURRENT_DESKTOP NIRI_SOCKET PATH QT_IM_MODULE XMODIFIERS SDL_IM_MODULE GLFW_IM_MODULE NIXOS_OZONE_WL"
           ];
         }
         # 啟動 Polkit 圖形認證代理
@@ -575,6 +580,10 @@ in
         # Apps
         "Mod+Return".action.spawn = [ "foot" ];
         "Mod+E".action.spawn = [ "foot" ];
+        # 重啟輸入法守護行程（遇到輸入法卡住或未響應時重置）
+        "Mod+Alt+R".action.spawn = [ "fcitx5" "-r" "-d" ];
+        # 開啟輸入法圖形配置介面
+        "Mod+Alt+I".action.spawn = [ "fcitx5-configtool" ];
         # Chrome 以 Wayland 模式啟動並啟用 IME（text-input-v3）
         "Mod+B".action.spawn = [
           "google-chrome-stable"

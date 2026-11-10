@@ -57,13 +57,14 @@
     CARGO_HOME = "${config.xdg.dataHome}/cargo";
     GNUPGHOME = "${config.xdg.dataHome}/gnupg";
 
-    # fcitx5 輸入法：Wayland 下原生使用 text-input 協議，
-    # Qt 6.7+ 優先 wayland 再 fallback 到 fcitx，避免強制 QT_IM_MODULE=fcitx 觸發 Wayland 自檢警告
-    QT_IM_MODULES = "wayland;fcitx";
-
-    # X11 / XWayland 應用走 XIM 協定呼叫 fcitx5；GTK4 / Wayland 原生使用 text-input 協定，
-    # 官方強烈建議不要全域設定 GTK_IM_MODULE=fcitx 以免破壞 GTK4 原生輸入法支援。
+    # fcitx5 輸入法與 Wayland IME 環境變數設定
+    QT_IM_MODULE = "fcitx";
     XMODIFIERS = "@im=fcitx";
+    SDL_IM_MODULE = "fcitx";
+    GLFW_IM_MODULE = "ibus";
+
+    # 使 Electron / Chromium 應用原生走 Wayland 並完整支援 IME
+    NIXOS_OZONE_WL = "1";
   };
 
   xdg.configFile."wget/wgetrc".text = ''
